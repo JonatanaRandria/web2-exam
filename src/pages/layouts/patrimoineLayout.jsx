@@ -190,7 +190,7 @@ const chartData = {
           </Checkbox.Group>
           <Flux  data={fluxData}></Flux>
         </Sider>
-        <Content style={{ padding: '20px' }}>
+        <Content style={{ padding: '20px' }} >
           <Line data={chartData} options={{ responsive: true }} />
         </Content>
       </Layout>
