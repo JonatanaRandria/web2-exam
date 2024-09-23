@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Tabs, Typography, List, DatePicker, Select, Checkbox, Col, Row } from 'antd';
+import { Layout, Typography, List, DatePicker, Select, Checkbox } from 'antd';
 import { Line } from 'react-chartjs-2';
 import { Chart, registerables } from 'chart.js';
+import { data } from '../../data/data';
 
-// Register all necessary components for chart.js
+
 Chart.register(...registerables);
 
 const { Header, Content, Sider } = Layout;
@@ -12,7 +13,7 @@ const { RangePicker } = DatePicker;
 const { Option } = Select;
 
 const App = () => {
-  const [selectedProfile, setSelectedProfile] = useState('Cresus');
+  const [selectedProfile, setSelectedProfile] = useState('Agregat');
   const [dateRange, setDateRange] = useState([null, null]);
   const [showAgregat, setShowAgregat] = useState(true);
   const [showTresorerie, setShowTresorerie] = useState(true);
@@ -37,108 +38,110 @@ const App = () => {
     setShowObligations(checkedValues.includes('Obligations'));
   };
 
-  
   const updateFluxData = (profile, dateRange) => {
+    const startDate = dateRange[0] ? dateRange[0].toISOString().slice(0, 10) : null;
+    const endDate = dateRange[1] ? dateRange[1].toISOString().slice(0, 10) : null;
 
-    const updatedData = [
-      '!! FLUX IMPOSSIBLES !!',
-      `[2024-07-14][BP ${profile} & Cesar=-8970€] (Néri, -5000) (Hita, -1000) (Raliz, -7000)`,
-      '!! FLUX JOURNALIERS !!',
-      `[2024-07-10][Myriade Fr=78840€] (CAR remb., 78000)`,
-      `[2024-07-14][BP ${profile} & Cesar=-8970€] (Néri, -5000) (Hita, -1000) (Raliz, -7000)`,
-    ];
-    setFluxData(updatedData);
+    const filteredData = data.filter(item => {
+      return (!startDate || item.date >= startDate) && (!endDate || item.date <= endDate);
+    });
+
+    const updatedFluxData = filteredData.map(item => (
+      `Date: ${item.date}, ${profile} = ${item[profile]}`
+    ));
+
+    setFluxData(updatedFluxData);
   };
 
   useEffect(() => {
     updateFluxData(selectedProfile, dateRange);
-  }, [fluxData]);
+  }, [selectedProfile, dateRange]);
 
-  const data = {
-    labels: ['07-01', '07-02', '07-03', '07-04', '07-05', '07-06', '07-07', '07-08', '07-09', '07-10', '07-11', '07-12', '07-13', '07-14', '07-15', '07-16'],
+  const filteredData = data.filter(item => {
+    const itemDate = new Date(item.date);
+    const startDate = dateRange[0] ? dateRange[0] : new Date(2019, 0, 1);
+    const endDate = dateRange[1] ? dateRange[1] : new Date(2030, 11, 31);
+    return itemDate >= startDate && itemDate <= endDate;
+  });
+
+  const chartData = {
+    labels: filteredData.map(item => item.date),
     datasets: [
       showAgregat && {
         label: 'Agregat',
-        data: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 100, 90, 80, 70],
+        data: filteredData.map(item => item.Agregat),
         borderColor: 'green',
         fill: false,
         borderWidth: 2,
       },
       showTresorerie && {
         label: 'Tresorerie',
-        data: [0, -10, -20, -30, -40, -50, -60, -70, -80, -90, -100, -90, -80, -70, -60, -50],
+        data: filteredData.map(item => item.Tresorerie),
         borderColor: 'red',
         fill: false,
         borderWidth: 2,
       },
       showImmobilisations && {
         label: 'Immobilisations',
-        data: [0, 5, 15, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130],
+        data: filteredData.map(item => item.Immobilisations),
         borderColor: 'blue',
         fill: false,
         borderWidth: 2,
       },
       showObligations && {
         label: 'Obligations',
-        data: [0, 3, 12, 22, 30, 45, 50, 60, 75, 80, 90, 95, 105, 115, 125, 135],
+        data: filteredData.map(item => item.Obligations),
         borderColor: 'yellow',
         fill: false,
         borderWidth: 2,
       },
       {
         label: 'A2',
-        data: [0, 20, 30, 25, 35, 50, 60, 70, 90, 100, 110, 120, 130, 120, 110, 100],
+        data: filteredData.map(item => item.A2),
         borderColor: 'brown',
         fill: false,
         borderWidth: 2,
       },
       {
         label: 'BP cresus&cesar',
-        data: [0, -20, -15, -25, -30, -40, -50, -60, -70, -80, -90, -100, -110, -120, -130, -140],
+        data: filteredData.map(item => item.BP_Cresus_Cesar),
         borderColor: 'brown',
         fill: false,
         borderWidth: 2,
       },
       {
         label: 'Byzance 1/3',
-        data: [0, 10, 15, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130],
-        borderColor: 'brown',
-        fill: false,
-        borderDash: [5, 5],
-        pointStyle: 'triangle',
-        pointRadius: 5,
-      },
-      {
-        label: 'créance crésus',
-        data: [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75],
+        data: filteredData.map(item => item.Byzance_1_3),
         borderColor: 'brown',
         borderDash: [5, 5],
         fill: false,
-        borderWidth: 2,
       },
       {
-        label: 'Dette cersus',
-        data: [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30],
+        label: 'Créance Crésus',
+        data: filteredData.map(item => item.Creance_Cresus),
+        borderColor: 'brown',
+        borderDash: [5, 5],
+        fill: false,
+      },
+      {
+        label: 'Dette Cersus',
+        data: filteredData.map(item => item.Dette_Cersus),
         borderColor: 'lightbrown',
         borderDash: [5, 5],
         fill: false,
-        borderWidth: 2,
       },
       {
         label: 'Myriade Fr',
-        data: [0, 10, 20, 15, 25, 35, 45, 55, 65, 75, 85, 95, 105, 115, 125, 135],
+        data: filteredData.map(item => item.Myriade_Fr),
         borderColor: 'lightbrown',
         fill: false,
-        borderWidth: 2,
       },
       {
-        label: 'patrimoine',
-        data: [0, 20, 40, 60, 80, 100, 120, 140, 160, 180, 200, 220, 240, 260, 280, 300],
+        label: 'Patrimoine',
+        data: filteredData.map(item => item.Patrimoine),
         borderColor: 'green',
         fill: false,
         borderWidth: 4,
-        pointStyle: 'rect',
-        pointRadius: 6,
       },
     ].filter(Boolean),
   };
@@ -153,12 +156,12 @@ const App = () => {
       <Layout>
         <Sider width={300} style={{ background: '#f0f2f5', height: '100vh', overflowY: 'auto' }}>
           <Select defaultValue={selectedProfile} style={{ width: '100%' }} onChange={handleProfileChange}>
-            <Option value="Cresus">Cresus</Option>
-            <Option value="Etudiant pire des cas">Etudiant pire des cas</Option>
-            <Option value="Riches cas">Riches cas</Option>
+            <Option value="Agregat">Agregat</Option>
+            <Option value="Tresorerie">Tresorerie</Option>
+            <Option value="Immobilisations">Immobilisations</Option>
+            <Option value="Obligations">Obligations</Option>
           </Select>
           <RangePicker
-            defaultValue={dateRange}
             onChange={handleDateChange}
             style={{ marginTop: '10px', width: '100%' }}
           />
@@ -184,7 +187,7 @@ const App = () => {
           </Checkbox.Group>
         </Sider>
         <Content style={{ padding: '20px' }}>
-          <Line data={data} options={{ responsive: true }} />
+          <Line data={chartData} options={{ responsive: true }} />
           <Title level={3}>Flux de données</Title>
           <List
             bordered
@@ -200,3 +203,4 @@ const App = () => {
 };
 
 export default App;
+``
