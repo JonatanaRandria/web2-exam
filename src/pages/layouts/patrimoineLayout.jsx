@@ -39,6 +39,26 @@ const App = () => {
     setShowObligations(checkedValues.includes('Obligations'));
   };
 
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false, // Permet de contrôler la taille du graphique
+    plugins: {
+        legend: {
+            position: 'right', // Déplace la légende à droite
+        },
+    },
+    scales: {
+        x: {
+            // Vous pouvez ajuster les options des axes si nécessaire
+        },
+        y: {
+           
+        },
+    },
+};
+
+
+
   
   const updateFluxData = (profile, dateRange) => {
     const startDate = dateRange[0] ? dateRange[0].toISOString().slice(0, 10) : null;
@@ -191,7 +211,7 @@ const chartData = {
           <Flux  data={fluxData}></Flux>
         </Sider>
         <Content style={{ padding: '20px' }} >
-          <Line data={chartData} options={{ responsive: true }} />
+          <Line data={chartData}  options={chartOptions} style={{ height: '400px', width: '80%' }} />
         </Content>
       </Layout>
     </Layout>
